@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: db_ezequiel
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ezequiel
+      POSTGRES_PASSWORD: 12345
+      POSTGRES_DB: formulario
+    volumes:
+      - v_ezequiel:/var/lib/postgresql/data
+    networks:
+      - n_ezequiel
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ezequiel -d formulario"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build: .
+    image: ezequiel:v3
+    container_name: web_ezequiel
+    restart: unless-stopped
+    environment:
+      DB_HOST: db
+      DB_NAME: formulario
+      DB_USER: ezequiel
+      DB_PASSWORD: 12345
+    ports:
+      - "2468:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - n_ezequiel
+
+volumes:
+  v_ezequiel:
+    name: v_ezequiel
+
+networks:
+  n_ezequiel:
+    name: n_ezequiel
